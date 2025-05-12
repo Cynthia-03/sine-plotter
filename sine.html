@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sine Wave Plotter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .controls label {
+            margin-right: 10px;
+        }
+        .controls input {
+            width: 60px;
+            margin-right: 20px;
+        }
+        button {
+            padding: 5px 10px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sine Plot</h1>
+    
+    <div class="controls">
+        <label>Amplitude: <input type="number" id="amplitude" value="100"></label>
+        <label>Period: <input type="number" id="period" value="200"></label>
+        <label>Phase: <input type="number" id="phase" value="0"></label>
+        <button id="update">Update</button>
+        <button id="move">Move</button>
+        <button id="stop">Stop</button>
+    </div>
+    
+    <canvas id="sineCanvas" width="800" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('sineCanvas');
+        const ctx = canvas.getContext('2d');
+        const amplitudeInput = document.getElementById('amplitude');
+        const periodInput = document.getElementById('period');
+        const phaseInput = document.getElementById('phase');
+        const updateBtn = document.getElementById('update');
+        const moveBtn = document.getElementById('move');
+        const stopBtn = document.getElementById('stop');
+
+        let amplitude = 100;
+        let period = 200;
+        let phase = 0;
+        let animationId = null;
+        let isMoving = false;
+        let time = 0;
+
+        function drawAxes() {
+            ctx.font = '14px Arial';
+            ctx.fillText('Y', 30, 20);
+            ctx.fillText('X', canvas.width - 20, canvas.height - 10);
+        }
+
+        function drawTicks() {
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#000';
+            for (let a = -1; a <= 1; a += 0.5) {
+                const y = canvas.height / 2 - a * amplitude;
+                ctx.fillText(a.toFixed(1), 20, y + 4);
+            }
+            for (let x = 100; x < canvas.width; x += 100) {
+                ctx.fillText(x, x, canvas.height / 2 + 20);
+            }
+        }
+
+        function drawSineWave() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawAxes();
+            ctx.strokeStyle = 'SlateBlue';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            const centerY = canvas.height / 2;
+            const frequency = 2 * Math.PI / period;
+
+            for (let x = 0; x < canvas.width; x++) {
+                const y = centerY - amplitude * Math.sin(frequency * (x + phase));
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+
+            ctx.stroke();
+        }
+
+        function updatePlot() {
+            amplitude = parseInt(amplitudeInput.value);
+            period = parseInt(periodInput.value);
+            phase = parseInt(phaseInput.value);
+            if (isMoving) {
+                cancelAnimationFrame(animationId);
+                isMoving = false;
+            }
+            drawSineWave();
+        }
+
+        function animate() {
+            phase += 2;
+            phaseInput.value = phase;
+            drawSineWave();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        updateBtn.addEventListener('click', updatePlot);
+        moveBtn.addEventListener('click', () => {
+            if (!isMoving) {
+                isMoving = true;
+                animate();
+            }
+        });
+        stopBtn.addEventListener('click', () => {
+            if (isMoving) {
+                cancelAnimationFrame(animationId);
+                isMoving = false;
+            }
+        });
+
+        drawSineWave();
+    </script>
+</body>
+</html>
